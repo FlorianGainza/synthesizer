@@ -1,2 +1,2 @@
-# terminizer
-Simple command line synthesizer
+# Synthesizer
+Synthesizer server
