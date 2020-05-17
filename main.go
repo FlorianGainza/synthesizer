@@ -27,15 +27,30 @@ type header struct {
 	DataSize      int32
 }
 
+var frequencies = map[string]uint16{
+	"c":  262,
+	"c#": 278,
+	"d":  294,
+	"d#": 311,
+	"e":  330,
+	"f":  349,
+	"f#": 370,
+	"g":  392,
+	"g#": 415,
+	"a":  440,
+	"a#": 466,
+	"b":  494,
+}
+
 var addr = flag.String("addr", ":8080", "http service address")
 var upgrader = websocket.Upgrader{}
 
-func sinWave(sampleRate int, freq int) []byte {
+func sinWave(sampleRate uint16, freq uint16) []byte {
 	soundData := make([]byte, sampleRate)
 	cycleRate := float64(sampleRate) / float64(freq)
 
 	var x float64
-	for i := 0; i < sampleRate; i++ {
+	for i := uint16(0); i < sampleRate; i++ {
 		x = float64(i) / cycleRate * (2 * math.Pi)
 		soundData[i] = byte(((math.Sin(x) + 1) / 2) * 255)
 	}
@@ -50,18 +65,20 @@ func synt(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 	for {
-		_, message, err := c.ReadMessage()
+		_, pitch, err := c.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 			break
 		}
-		log.Printf("recv: %s", message)
+		log.Printf("recv: %s", pitch)
 
 		numChannels := 1
-		sampleRate := 44100
+		sampleRate := uint16(44100)
 		// TODO what is precision ???
 		precision := 1
-		sound := sinWave(sampleRate, 262)
+
+		freq, _ := frequencies[string(pitch)]
+		sound := sinWave(sampleRate, freq)
 
 		h := header{
 			RiffMark:      [4]byte{'R', 'I', 'F', 'F'},
