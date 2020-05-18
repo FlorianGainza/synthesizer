@@ -5,27 +5,11 @@ import (
 	"encoding/binary"
 	"flag"
 	"log"
-	"math"
 	"net/http"
 
+	"github.com/FlorianGainza/synthesizer/pkg/wave"
 	"github.com/gorilla/websocket"
 )
-
-type header struct {
-	RiffMark      [4]byte
-	FileSize      int32
-	WaveMark      [4]byte
-	FmtMark       [4]byte
-	FormatSize    int32
-	FormatType    int16
-	NumChans      int16
-	SampleRate    int32
-	ByteRate      int32
-	BytesPerFrame int16
-	BitsPerSample int16
-	DataMark      [4]byte
-	DataSize      int32
-}
 
 var frequencies = map[string]uint16{
 	"c":  262,
@@ -44,18 +28,6 @@ var frequencies = map[string]uint16{
 
 var addr = flag.String("addr", ":8080", "http service address")
 var upgrader = websocket.Upgrader{}
-
-func sinWave(sampleRate uint16, freq uint16) []byte {
-	soundData := make([]byte, sampleRate)
-	cycleRate := float64(sampleRate) / float64(freq)
-
-	var x float64
-	for i := uint16(0); i < sampleRate; i++ {
-		x = float64(i) / cycleRate * (2 * math.Pi)
-		soundData[i] = byte(((math.Sin(x) + 1) / 2) * 255)
-	}
-	return soundData
-}
 
 func synt(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
@@ -76,24 +48,25 @@ func synt(w http.ResponseWriter, r *http.Request) {
 		sampleRate := uint16(44100)
 		// TODO what is precision ???
 		precision := 1
+		samples := uint32(44100) // 0.002 secondes - 0.2 sample
 
 		freq, _ := frequencies[string(pitch)]
-		sound := sinWave(sampleRate, freq)
+		sound := wave.Square(sampleRate, freq, samples)
 
-		h := header{
+		h := wave.Header{
 			RiffMark:      [4]byte{'R', 'I', 'F', 'F'},
-			FileSize:      44100 + 44, // finalization
+			FileSize:      int32(samples) + 44,
 			WaveMark:      [4]byte{'W', 'A', 'V', 'E'},
 			FmtMark:       [4]byte{'f', 'm', 't', ' '},
-			FormatSize:    16, //16 for PCM. This is the size of the rest of the Subchunk which follows this number.
-			FormatType:    1,  //PCM = 1 (i.e. Linear quantization) Values other than 1 indicate some form of compression.
+			FormatSize:    16,
+			FormatType:    1,
 			NumChans:      int16(numChannels),
 			SampleRate:    int32(sampleRate),
-			ByteRate:      int32(int(sampleRate) * numChannels * precision), // == SampleRate * NumChannels * BitsPerSample/8
-			BytesPerFrame: int16(numChannels * precision),                   // == NumChannels * BitsPerSample/8 The number of bytes for one sample including all channels.
+			ByteRate:      int32(int(sampleRate) * numChannels * precision),
+			BytesPerFrame: int16(numChannels * precision),
 			BitsPerSample: int16(precision) * 8,
 			DataMark:      [4]byte{'d', 'a', 't', 'a'},
-			DataSize:      44100, // finalization
+			DataSize:      samples,
 		}
 		var buf bytes.Buffer
 		if err := binary.Write(&buf, binary.LittleEndian, &h); err != nil {
