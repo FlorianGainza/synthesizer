@@ -1,4 +1,4 @@
-module synthesizer
+module github.com/FlorianGainza/synthesizer
 
 go 1.14
 
