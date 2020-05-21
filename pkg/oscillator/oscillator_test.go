@@ -1,10 +1,10 @@
-package wave_test
+package oscillator_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/FlorianGainza/synthesizer/pkg/wave"
+	"github.com/FlorianGainza/synthesizer/pkg/oscillator"
 )
 
 func sliceAreEqual(a []byte, b []byte) bool {
@@ -46,14 +46,14 @@ func loadBinaryContent(fileName string) []byte {
 
 func TestSinGenerateC(t *testing.T) {
 	expected := loadBinaryContent("sin-c.dat")
-	if !sliceAreEqual(wave.Sin(44100, 262, 44100), expected) {
+	if !sliceAreEqual(oscillator.Sin(44100, 262, 44100), expected) {
 		t.Errorf("Wrong sin wave generated")
 	}
 }
 
 func TestSquareGenerateC(t *testing.T) {
 	expected := loadBinaryContent("square-c.dat")
-	if !sliceAreEqual(wave.Square(44100, 262, 44100), expected) {
+	if !sliceAreEqual(oscillator.Square(44100, 262, 44100), expected) {
 		t.Errorf("Wrong square wave generated")
 	}
 }

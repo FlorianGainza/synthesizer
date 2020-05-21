@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/FlorianGainza/synthesizer/pkg/wave"
+	"github.com/FlorianGainza/synthesizer/pkg/oscillator"
 	"github.com/gorilla/websocket"
 )
 
@@ -51,9 +51,9 @@ func synt(w http.ResponseWriter, r *http.Request) {
 		samples := uint32(44100) // 0.002 secondes - 0.2 sample
 
 		freq, _ := frequencies[string(pitch)]
-		sound := wave.Square(sampleRate, freq, samples)
+		sound := oscillator.Square(sampleRate, freq, samples)
 
-		h := wave.Header{
+		h := oscillator.Header{
 			RiffMark:      [4]byte{'R', 'I', 'F', 'F'},
 			FileSize:      int32(samples) + 44,
 			WaveMark:      [4]byte{'W', 'A', 'V', 'E'},
