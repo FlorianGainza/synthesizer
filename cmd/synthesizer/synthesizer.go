@@ -41,7 +41,7 @@ func synt(w http.ResponseWriter, r *http.Request) {
 
 	keyIn, keyOut := make(chan string), make(chan string)
 
-	granularity := 20 * time.Millisecond // 0.02 secondes
+	granularity := 40 * time.Millisecond
 
 	go clock(keyIn, keyOut, granularity)
 
@@ -123,7 +123,6 @@ func clock(keyIn chan string, keyOut chan string, delay time.Duration) {
 			}
 			log.Println("received key ", key)
 		default:
-			log.Println("listening")
 		}
 		keyOut <- key
 	}
