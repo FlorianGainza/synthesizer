@@ -27,15 +27,16 @@ type Header struct {
 //     - The sample rate per seconde
 //     - The signal frequency per seconde
 //     - The number of samples
-func Sin(sampleRate uint16, freq uint16, nbSamples uint32) []byte {
+//     - The sample offset
+func Sin(sampleRate uint16, freq uint16, nbSamples uint32, sampleOffset uint32) []byte {
 	// Number of samples in one cycle of signal
 	sigCycle := float64(sampleRate) / float64(freq)
 	samples := make([]byte, nbSamples)
-
+	nbSamples += sampleOffset
 	var x float64
-	for i := uint32(0); i < nbSamples; i++ {
+	for i := sampleOffset; i < nbSamples; i++ {
 		x = float64(i) / sigCycle * (2 * math.Pi)
-		samples[i] = byte(((math.Sin(x) + 1) / 2) * 255)
+		samples[i-sampleOffset] = byte(((math.Sin(x) + 1) / 2) * 255)
 	}
 
 	return samples
@@ -47,18 +48,19 @@ func Sin(sampleRate uint16, freq uint16, nbSamples uint32) []byte {
 //     - The sample rate per seconde
 //     - The signal frequency per seconde
 //     - The number of samples
-func Square(sampleRate uint16, freq uint16, nbSamples uint32) []byte {
+//     - The sample offset
+func Square(sampleRate uint16, freq uint16, nbSamples uint32, sampleOffset uint32) []byte {
 	// Number of samples in one cycle of signal
 	sigCycle := float64(sampleRate) / float64(freq)
 	samples := make([]byte, nbSamples)
-
+	nbSamples += sampleOffset
 	var isPositive bool
-	for i := uint32(0); i < nbSamples; i++ {
+	for i := sampleOffset; i < nbSamples; i++ {
 		isPositive = math.Mod((float64(i)/sigCycle), 1) < 0.5
 		if isPositive {
-			samples[i] = byte(255)
+			samples[i-sampleOffset] = byte(255)
 		} else {
-			samples[i] = byte(0)
+			samples[i-sampleOffset] = byte(0)
 		}
 	}
 

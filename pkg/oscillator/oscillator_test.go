@@ -46,14 +46,28 @@ func loadBinaryContent(fileName string) []byte {
 
 func TestSinGenerateC(t *testing.T) {
 	expected := loadBinaryContent("sin-c.dat")
-	if !sliceAreEqual(oscillator.Sin(44100, 262, 44100), expected) {
+	if !sliceAreEqual(oscillator.Sin(44100, 262, 169, 0), expected) {
 		t.Errorf("Wrong sin wave generated")
+	}
+}
+
+func TestSinGenerateCwithOffset(t *testing.T) {
+	expected := loadBinaryContent("sin-c-offset.dat")
+	if !sliceAreEqual(oscillator.Sin(44100, 262, 169, 85), expected) {
+		t.Errorf("Wrong square wave with offset generated")
 	}
 }
 
 func TestSquareGenerateC(t *testing.T) {
 	expected := loadBinaryContent("square-c.dat")
-	if !sliceAreEqual(oscillator.Square(44100, 262, 44100), expected) {
+	if !sliceAreEqual(oscillator.Square(44100, 262, 169, 0), expected) {
 		t.Errorf("Wrong square wave generated")
+	}
+}
+
+func TestSquareGenerateCwithOffset(t *testing.T) {
+	expected := loadBinaryContent("square-c-offset.dat")
+	if !sliceAreEqual(oscillator.Square(44100, 262, 169, 85), expected) {
+		t.Errorf("Wrong square wave with offset generated")
 	}
 }

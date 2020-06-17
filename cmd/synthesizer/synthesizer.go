@@ -33,6 +33,10 @@ var upgrader = websocket.Upgrader{}
 
 func synt(w http.ResponseWriter, r *http.Request) {
 	socket, err := upgrader.Upgrade(w, r, nil)
+
+	log.Println("New client connection")
+	defer log.Printf("Closing connection")
+
 	if err != nil {
 		log.Print("upgrade:", err)
 		return
@@ -43,6 +47,7 @@ func synt(w http.ResponseWriter, r *http.Request) {
 
 	granularity := 40 * time.Millisecond
 
+	// TODO close goroutine when client close connection
 	go clock(keyIn, keyOut, granularity)
 
 	go play(keyOut, socket, granularity)
@@ -72,12 +77,13 @@ func play(keyOut chan string, socket *websocket.Conn, duration time.Duration) {
 	// TODO what is precision ???
 	precision := 1
 	samples := uint32(float64(sampleRate) * duration.Seconds())
+	sampleOffset := uint32(0)
 	for {
 		pitch := <-keyOut
 		if len(pitch) > 0 {
 			freq, _ := frequencies[string(pitch)]
-			sound := oscillator.Square(sampleRate, freq, samples)
-
+			sound := oscillator.Square(sampleRate, freq, samples, sampleOffset)
+			sampleOffset = sampleOffset + samples
 			h := oscillator.Header{
 				RiffMark:      [4]byte{'R', 'I', 'F', 'F'},
 				FileSize:      int32(samples) + 44,
